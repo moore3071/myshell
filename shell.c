@@ -7,6 +7,7 @@ char* readInput();
 char** parseInput(char*);
 char* tokenize(char**);
 int isDelimiter(char);
+void printPrompt();
 
 int main(int argc, char ** argv)
 {
@@ -94,4 +95,12 @@ int isDelimiter(char input)
 			result = 1;
 	}
 	return result;
+}
+
+void printPrompt()
+{
+	if(getuid()==0)
+		printf("#");
+	else
+		printf(">");
 }
