@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
 	printf("WELCOME TO MY SHELL!\n");
 	while(1)
 	{
-		printf(">");
+		printPrompt();
 		line = readInput();
 		arguments = parseInput(line);
 //		executeCommand();
@@ -99,6 +99,8 @@ int isDelimiter(char input)
 
 void printPrompt()
 {
+	printf("(%s)",get_current_dir_name());
+
 	if(getuid()==0)
 		printf("#");
 	else
