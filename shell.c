@@ -9,6 +9,10 @@ char* tokenize(char**);
 int isDelimiter(char);
 void printPrompt();
 void executeCommand(char**);
+void cd(char**);
+void runBuiltin(char**);
+
+static const char *BUILTINS[] = {"cd", "exit", "pwd"};
 
 int main(int argc, char ** argv)
 {
@@ -119,13 +123,50 @@ void executeCommand(char** args)
 	char ** tmp = args;
 	int i=0, *status;
 	pid_t pid;
-	pid = fork();
-	if(pid==0)
+	if(isBuiltin(args[0]))
 	{
-		if(execvp(args[0],args) ==-1)
-			perror("mySH exec failed");
+		runBuiltin(args);
 	} else
 	{
-		waitpid(pid, status, WUNTRACED);
+		pid = fork();
+		if(pid==0)
+		{
+			if(execvp(args[0],args) ==-1)
+				perror("mySH exec failed");
+		} else
+		{
+			waitpid(pid, status, WUNTRACED);
+		}
 	}
+}
+
+int isBuiltin(char* command)
+{
+	int i, result=0;
+	for(i=0; BUILTINS[i]!=NULL;i++)
+	{
+		if(!strcmp(command,BUILTINS[i]))
+			result = 1;
+	}
+	return result;
+}
+
+void runBuiltin(char** args)
+{
+	if(!strcmp(args[0],"cd"))
+		cd(args);
+	if(!strcmp(args[0],"exit"))
+		exit(0);
+	if(!strcmp(args[0],"pwd"))
+		printf("%s\n",get_current_dir_name());
+}
+
+void cd(char** args)
+{
+	char * destination;
+	if(args[1]==NULL)
+		destination = getenv("HOME");
+	else
+		destination = args[1];
+	chdir(destination);
 }
