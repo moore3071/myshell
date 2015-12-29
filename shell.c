@@ -8,6 +8,7 @@ char** parseInput(char*);
 char* tokenize(char**);
 int isDelimiter(char);
 void printPrompt();
+void executeCommand(char**);
 
 int main(int argc, char ** argv)
 {
@@ -18,7 +19,7 @@ int main(int argc, char ** argv)
 		printPrompt();
 		line = readInput();
 		arguments = parseInput(line);
-//		executeCommand();
+		executeCommand(arguments);
 	}
 }
 
@@ -50,7 +51,9 @@ char **parseInput(char* input)
 			perror("mySH: realloc() ");
 			exit(EXIT_FAILURE);
 		}
+		printf("string %s\n", input);
 		result_ptr = tokenize(&input);
+		printf("TOKENIZED");
 		outer++;
 		input++;
 	}
@@ -60,6 +63,7 @@ char **parseInput(char* input)
 /*Get the first token or word from a pointer to a string, and increments the value of said pointer to point to the delimiter following said token*/
 char* tokenize(char** input)
 {
+	printf("%s", *input);
 	char *result, *ptr=*input;
 	int size=0, str_size=STR_BUF_INCR;
 	if((result = malloc(str_size*sizeof(char)))==NULL)
@@ -69,6 +73,7 @@ char* tokenize(char** input)
 	}
 	do
 	{
+		printf("count\n");
 		if(size>=str_size)
 		{
 			if( (result = realloc(result, sizeof(char)*(str_size+=STR_BUF_INCR) ))==NULL )
@@ -77,13 +82,15 @@ char* tokenize(char** input)
 				exit(EXIT_FAILURE);
 			}
 		}
-		*(result+size*sizeof(char)) = *ptr++;
-	} while(!isDelimiter(*ptr));
+		*(result+size*sizeof(char)) = *(*input);
+	} while(!isDelimiter(**input));
+//	printf("%s", result);
 	return result;
 }
 
 int isDelimiter(char input)
 {
+	printf("char %c\n", input);
 	int result = 0;
 	switch(input)
 	{
@@ -99,10 +106,15 @@ int isDelimiter(char input)
 
 void printPrompt()
 {
-	printf("(%s)",get_current_dir_name());
+	printf("%s",get_current_dir_name());
 
 	if(getuid()==0)
 		printf("#");
 	else
-		printf(">");
+		printf("$");
+}
+
+void executeCommand(char** args)
+{
+	char ** tmp = args;
 }
