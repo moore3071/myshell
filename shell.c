@@ -165,8 +165,12 @@ void cd(char** args)
 {
 	char * destination;
 	if(args[1]==NULL)
-		destination = getenv("HOME");
-	else
-		destination = args[1];
-	chdir(destination);
+		chdir(getenv("HOME"));
+	else if(args[1][0]=='~')
+	{
+		chdir(getenv("HOME"));
+		if(args[1][1]=='/')
+			chdir(&args[1][2]);
+	} else
+		chdir(args[1]);
 }
