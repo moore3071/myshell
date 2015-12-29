@@ -19,7 +19,6 @@ int main(int argc, char ** argv)
 		printPrompt();
 		line = readInput();
 		arguments = parseInput(line);
-		printf("Checkpoint pre-execute");
 		executeCommand(arguments);
 	}
 }
@@ -46,20 +45,18 @@ char **parseInput(char* input)
 	}
 	while(*input!='\0')
 	{
+		*(result+spots) = tokenize(&input);
+		outer++;
+		spots++;
+		input++;
 		//HANDLES exceeding the number of strings allocated
 		if(outer>=pars_buf && (( result = realloc(result, sizeof(char*)*(pars_buf+=PARS_BUF_INCR) )) == NULL))
 		{
 			perror("mySH: realloc() ");
 			exit(EXIT_FAILURE);
 		}
-		*(result+spots) = tokenize(&input);
-		outer++;
-		spots++;
-		input++;
 	}
-	printf("Checkpoint preNULL");
 	*(result+spots) = NULL;
-	printf("Checkpoint postNULL");
 	return result;
 }
 
@@ -75,6 +72,8 @@ char* tokenize(char** input)
 	}
 	do
 	{
+		*(result+size*sizeof(char)) = *(*input);
+		size++;
 		if(size>=str_size)
 		{
 			if( (result = realloc(result, sizeof(char)*(str_size+=STR_BUF_INCR) ))==NULL )
@@ -83,10 +82,9 @@ char* tokenize(char** input)
 				exit(EXIT_FAILURE);
 			}
 		}
-		*(result+size*sizeof(char)) = *(*input);
-		size++;
 	} while(!isDelimiter((*(*input)++)));
 	*(*input)--;
+	*(result+(size-1)*sizeof(char)) = 0;
 	return result;
 }
 
@@ -108,7 +106,7 @@ int isDelimiter(char input)
 
 void printPrompt()
 {
-	printf("%s",get_current_dir_name());
+	printf("%s ",get_current_dir_name());
 
 	if(getuid()==0)
 		printf("#");
@@ -119,8 +117,15 @@ void printPrompt()
 void executeCommand(char** args)
 {
 	char ** tmp = args;
-	int i=0;
-	printf("yay");
-//	printf("%s\n",args[0]);
-	printf("comm %s\n", execvp(args[0],args));
+	int i=0, *status;
+	pid_t pid;
+	pid = fork();
+	if(pid==0)
+	{
+		if(execvp(args[0],args) ==-1)
+			perror("mySH exec failed");
+	} else
+	{
+		waitpid(pid, status, WUNTRACED);
+	}
 }
